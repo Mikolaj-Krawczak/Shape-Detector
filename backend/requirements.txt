@@ -1,0 +1,3 @@
+# FastAPI + serwer ASGI — wersje doprecyzujesz przy pierwszym pip install -r
+fastapi
+uvicorn[standard]
