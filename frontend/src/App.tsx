@@ -66,8 +66,18 @@ function Thermometer({
   return (
     <div className="thermo-wrap">
       <div className="thermo-labels">
-        <span className="label-black">♟ Czarne</span>
-        <span className="label-white">♙ Białe</span>
+        <span className="thermo-label thermo-label--black">
+          <span className="thermo-piece" aria-hidden>
+            ♟
+          </span>
+          <span className="thermo-label-text">Czarne</span>
+        </span>
+        <span className="thermo-label thermo-label--white">
+          <span className="thermo-piece" aria-hidden>
+            ♙
+          </span>
+          <span className="thermo-label-text">Białe</span>
+        </span>
       </div>
 
       <div
@@ -181,9 +191,12 @@ export default function App() {
     <main className="app">
       <header className="header">
         <h1>
-          Chess <span>Vision</span>
+          Chess <span className="title-live">Live</span>{" "}
+          <span className="title-analysis">Analysis</span>
         </h1>
-        <p>Analiza pozycji · Stockfish Engine · MVP v0.1</p>
+        <p>
+          Analiza pozycji · <strong>Stockfish 18</strong> · silnik UCI · MVP v0.1
+        </p>
       </header>
 
       <div className="input-panel">
@@ -232,8 +245,18 @@ export default function App() {
       ) : (
         <div className="thermo-wrap">
           <div className="thermo-labels">
-            <span className="label-black">♟ Czarne</span>
-            <span className="label-white">♙ Białe</span>
+            <span className="thermo-label thermo-label--black">
+              <span className="thermo-piece" aria-hidden>
+                ♟
+              </span>
+              <span className="thermo-label-text">Czarne</span>
+            </span>
+            <span className="thermo-label thermo-label--white">
+              <span className="thermo-piece" aria-hidden>
+                ♙
+              </span>
+              <span className="thermo-label-text">Białe</span>
+            </span>
           </div>
           <div
             className="thermo-bar thermo-bar--placeholder"
@@ -257,8 +280,22 @@ export default function App() {
           <>
             <div className="info-card">
               <div className="ic-label">Kolej</div>
-              <div className="ic-val">
-                {result.turn === "white" ? "♙ Białe" : "♟ Czarne"}
+              <div className="ic-val ic-val--turn">
+                {result.turn === "white" ? (
+                  <>
+                    <span className="ic-piece" aria-hidden>
+                      ♙
+                    </span>
+                    <span>Białe</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="ic-piece" aria-hidden>
+                      ♟
+                    </span>
+                    <span>Czarne</span>
+                  </>
+                )}
               </div>
             </div>
             <BestMoveDisplay move={result.best_move} />
