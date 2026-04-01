@@ -7,6 +7,16 @@ const API = "http://localhost:8000";
 const STARTING_FEN =
   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+const DEPTH_MIN = 6;
+const DEPTH_MAX = 24;
+const ELO_MIN = 1320;
+const ELO_MAX = 3190;
+const DEFAULT_DEPTH = 18;
+const DEFAULT_ELO = 1500;
+const DEFAULT_SKILL = 10;
+
+type StrengthMode = "full" | "elo" | "skill";
+
 /** Odpowiedź z backendu FastAPI /evaluate (EvalResponse) */
 export interface EvalResponse {
   score: number;
@@ -156,11 +166,34 @@ function parseApiErrorPayload(data: unknown): string {
   return "Błąd serwera";
 }
 
+function buildEvaluatePayload(
+  fen: string,
+  depth: number,
+  strengthMode: StrengthMode,
+  eloLimit: number,
+  skillLevel: number
+): Record<string, string | number> {
+  const body: Record<string, string | number> = {
+    fen: fen.trim(),
+    depth,
+  };
+  if (strengthMode === "elo") {
+    body.elo_limit = eloLimit;
+  } else if (strengthMode === "skill") {
+    body.skill_level = skillLevel;
+  }
+  return body;
+}
+
 export default function App() {
   const [fen, setFen] = useState(STARTING_FEN);
   const [result, setResult] = useState<EvalResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [depth, setDepth] = useState(DEFAULT_DEPTH);
+  const [strengthMode, setStrengthMode] = useState<StrengthMode>("full");
+  const [eloLimit, setEloLimit] = useState(DEFAULT_ELO);
+  const [skillLevel, setSkillLevel] = useState(DEFAULT_SKILL);
 
   const evaluate = useCallback(async () => {
     setLoading(true);
@@ -169,7 +202,15 @@ export default function App() {
       const res = await fetch(`${API}/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fen: fen.trim(), depth: 18 }),
+        body: JSON.stringify(
+          buildEvaluatePayload(
+            fen,
+            depth,
+            strengthMode,
+            eloLimit,
+            skillLevel
+          )
+        ),
       });
       const data: unknown = await res.json();
       if (!res.ok) {
@@ -181,7 +222,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [fen]);
+  }, [depth, eloLimit, fen, skillLevel, strengthMode]);
 
   const handleKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !loading) void evaluate();
@@ -211,6 +252,92 @@ export default function App() {
           placeholder="Wklej notację FEN…"
           spellCheck={false}
         />
+
+        <div className="analysis-controls">
+          <div className="control-group">
+            <div className="control-head">
+              <label className="control-label" htmlFor="depth-range">
+                Głębokość analizy (depth)
+              </label>
+              <span className="control-value">{depth}</span>
+            </div>
+            <input
+              id="depth-range"
+              type="range"
+              min={DEPTH_MIN}
+              max={DEPTH_MAX}
+              value={depth}
+              onChange={(e) => setDepth(Number(e.target.value))}
+            />
+            <p className="control-hint">
+              Wyższa wartość = dokładniej, ale wolniej (typowo 10–20).
+            </p>
+          </div>
+
+          <div className="control-group">
+            <label className="control-label" htmlFor="strength-mode">
+              Siła silnika
+            </label>
+            <select
+              id="strength-mode"
+              className="control-select"
+              value={strengthMode}
+              onChange={(e) =>
+                setStrengthMode(e.target.value as StrengthMode)
+              }
+            >
+              <option value="full">Pełna siła (domyślnie)</option>
+              <option value="elo">Limit Elo (UCI_Elo, 1320–3190)</option>
+              <option value="skill">Skill Level (0–20)</option>
+            </select>
+          </div>
+
+          {strengthMode === "elo" && (
+            <div className="control-group">
+              <div className="control-head">
+                <label className="control-label" htmlFor="elo-range">
+                  Docelowe Elo
+                </label>
+                <span className="control-value">{eloLimit}</span>
+              </div>
+              <input
+                id="elo-range"
+                type="range"
+                min={ELO_MIN}
+                max={ELO_MAX}
+                step={10}
+                value={eloLimit}
+                onChange={(e) => setEloLimit(Number(e.target.value))}
+              />
+              <p className="control-hint">
+                Symulacja gracza o podanym rankingu (Stockfish UCI).
+              </p>
+            </div>
+          )}
+
+          {strengthMode === "skill" && (
+            <div className="control-group">
+              <div className="control-head">
+                <label className="control-label" htmlFor="skill-range">
+                  Skill Level
+                </label>
+                <span className="control-value">{skillLevel}</span>
+              </div>
+              <input
+                id="skill-range"
+                type="range"
+                min={0}
+                max={20}
+                value={skillLevel}
+                onChange={(e) => setSkillLevel(Number(e.target.value))}
+              />
+              <p className="control-hint">
+                0 = bardzo słaby, 20 = pełna siła silnika (~3800).
+              </p>
+            </div>
+          )}
+        </div>
+
         <div className="btn-row">
           <button
             type="button"
@@ -227,6 +354,10 @@ export default function App() {
               setFen(STARTING_FEN);
               setResult(null);
               setError(null);
+              setDepth(DEFAULT_DEPTH);
+              setStrengthMode("full");
+              setEloLimit(DEFAULT_ELO);
+              setSkillLevel(DEFAULT_SKILL);
             }}
           >
             Reset

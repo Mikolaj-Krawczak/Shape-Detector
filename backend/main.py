@@ -34,14 +34,39 @@ _DEFAULT_STOCKFISH_EXE = _REPO_ROOT / "stockfish" / "stockfish-windows-x86-64-av
 STOCKFISH_PATH = os.environ.get("STOCKFISH_PATH", str(_DEFAULT_STOCKFISH_EXE))
 
 
+def _clamp_int(v: int, lo: int, hi: int) -> int:
+    return max(lo, min(hi, v))
+
+
 class FENRequest(BaseModel):
     fen: str
     depth: int = 18
+    skill_level: int | None = None  # 0–20, None = pełna siła (gdy brak limitu Elo)
+    elo_limit: int | None = None    # 1320–3190, UCI_LimitStrength; pierwszeństwo nad skill_level
 
     @field_validator("fen")
     @classmethod
     def fen_strip(cls, v: str) -> str:
         return v.strip()
+
+    @field_validator("depth")
+    @classmethod
+    def depth_bounds(cls, v: int) -> int:
+        return _clamp_int(v, 1, 40)
+
+    @field_validator("skill_level")
+    @classmethod
+    def skill_bounds(cls, v: int | None) -> int | None:
+        if v is None:
+            return None
+        return _clamp_int(v, 0, 20)
+
+    @field_validator("elo_limit")
+    @classmethod
+    def elo_bounds(cls, v: int | None) -> int | None:
+        if v is None:
+            return None
+        return _clamp_int(v, 1320, 3190)
 
 
 class EvalResponse(BaseModel):
@@ -89,6 +114,14 @@ def evaluate(req: FENRequest):
 
     try:
         with chess.engine.SimpleEngine.popen_uci(STOCKFISH_PATH) as engine:
+            if req.elo_limit is not None:
+                engine.configure({
+                    "UCI_LimitStrength": True,
+                    "UCI_Elo": req.elo_limit,
+                })
+            elif req.skill_level is not None:
+                engine.configure({"Skill Level": req.skill_level})
+
             info = engine.analyse(board, chess.engine.Limit(depth=req.depth))
     except Exception as e:
         msg = str(e).strip() or repr(e)
