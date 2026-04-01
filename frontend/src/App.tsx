@@ -78,13 +78,13 @@ function Thermometer({
       <div className="thermo-labels">
         <span className="thermo-label thermo-label--black">
           <span className="thermo-piece" aria-hidden>
-            ♟
+            ♙
           </span>
           <span className="thermo-label-text">Czarne</span>
         </span>
         <span className="thermo-label thermo-label--white">
           <span className="thermo-piece" aria-hidden>
-            ♙
+            ♟
           </span>
           <span className="thermo-label-text">Białe</span>
         </span>
@@ -399,13 +399,13 @@ export default function App() {
           <div className="thermo-labels">
             <span className="thermo-label thermo-label--black">
               <span className="thermo-piece" aria-hidden>
-                ♟
+                ♙
               </span>
               <span className="thermo-label-text">Czarne</span>
             </span>
             <span className="thermo-label thermo-label--white">
               <span className="thermo-piece" aria-hidden>
-                ♙
+                ♟
               </span>
               <span className="thermo-label-text">Białe</span>
             </span>
@@ -435,15 +435,15 @@ export default function App() {
               <div className="ic-val ic-val--turn">
                 {result.turn === "white" ? (
                   <>
-                    <span className="ic-piece" aria-hidden>
-                      ♙
+                    <span className="ic-piece ic-piece--plate-light" aria-hidden>
+                      ♟
                     </span>
                     <span>Białe</span>
                   </>
                 ) : (
                   <>
-                    <span className="ic-piece" aria-hidden>
-                      ♟
+                    <span className="ic-piece ic-piece--plate-dark" aria-hidden>
+                      ♙
                     </span>
                     <span>Czarne</span>
                   </>
