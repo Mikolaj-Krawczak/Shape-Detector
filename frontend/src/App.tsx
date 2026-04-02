@@ -83,13 +83,13 @@ function Thermometer({
           <span className="thermo-piece" aria-hidden>
             ♙
           </span>
-          <span className="thermo-label-text">Czarne</span>
+          <span className="thermo-label-text">CZARNE</span>
         </span>
         <span className="thermo-label thermo-label--white">
           <span className="thermo-piece" aria-hidden>
             ♟
           </span>
-          <span className="thermo-label-text">Białe</span>
+          <span className="thermo-label-text">BIAŁE</span>
         </span>
       </div>
 
@@ -285,14 +285,14 @@ export default function App() {
                       <span className="bic-piece bic-piece--plate-light" aria-hidden>
                         ♟
                       </span>
-                      <span>Białe</span>
+                      <span>BIAŁE</span>
                     </>
                   ) : (
                     <>
                       <span className="bic-piece bic-piece--plate-dark" aria-hidden>
                         ♙
                       </span>
-                      <span>Czarne</span>
+                      <span>CZARNE</span>
                     </>
                   )}
                 </div>
@@ -480,13 +480,13 @@ export default function App() {
               <span className="thermo-piece" aria-hidden>
                 ♙
               </span>
-              <span className="thermo-label-text">Czarne</span>
+            <span className="thermo-label-text">CZARNE</span>
+          </span>
+          <span className="thermo-label thermo-label--white">
+            <span className="thermo-piece" aria-hidden>
+              ♟
             </span>
-            <span className="thermo-label thermo-label--white">
-              <span className="thermo-piece" aria-hidden>
-                ♟
-              </span>
-              <span className="thermo-label-text">Białe</span>
+            <span className="thermo-label-text">BIAŁE</span>
             </span>
           </div>
           <div
