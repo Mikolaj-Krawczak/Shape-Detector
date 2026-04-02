@@ -301,7 +301,10 @@ export default function App() {
                 <div className="bic-label">Najlepszy ruch</div>
                 <div className="bic-val bic-val--move">
                   {result.best_move ? (
-                    <span className="move-arrow">{result.best_move}</span>
+                    <span className="move-arrow">
+                      {result.best_move.slice(0, 2)} → {result.best_move.slice(2, 4)}
+                      {result.best_move.length > 4 && result.best_move.slice(4)}
+                    </span>
                   ) : (
                     <span className="move-none">—</span>
                   )}
