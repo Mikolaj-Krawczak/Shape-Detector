@@ -194,9 +194,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showBestMove, setShowBestMove] = useState(true);
-  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">(
-    "white"
-  );
+  const [boardOrientation, setBoardOrientation] = useState<"white" | "black">("white");
   const [boardWidth, setBoardWidth] = useState(400);
   const boardColRef = useRef<HTMLDivElement>(null);
   const [depth, setDepth] = useState(DEFAULT_DEPTH);
@@ -268,7 +266,7 @@ export default function App() {
           boardWidth={boardWidth}
           boardOrientation={boardOrientation}
         />
-        <div className="board-toolbar">
+        <div className="board-controls">
           <button
             type="button"
             className={`arrow-toggle${showBestMove ? " arrow-toggle--active" : ""}`}
@@ -279,14 +277,11 @@ export default function App() {
           </button>
           <button
             type="button"
-            className={`board-orient-toggle${boardOrientation === "black" ? " board-orient-toggle--active" : ""}`}
-            onClick={() =>
-              setBoardOrientation((o) => (o === "white" ? "black" : "white"))
-            }
-            aria-pressed={boardOrientation === "black"}
-            title="Obrót planszy o 180° (perspektywa białych / czarnych)"
+            className="flip-board-btn"
+            onClick={() => setBoardOrientation((o) => (o === "white" ? "black" : "white"))}
+            title="Obróć szachownicę o 180°"
           >
-            ↻ Obróć planszę (180°)
+            ⟲ Obróć
           </button>
         </div>
 
@@ -475,7 +470,6 @@ export default function App() {
               setStrengthMode("full");
               setEloLimit(DEFAULT_ELO);
               setSkillLevel(DEFAULT_SKILL);
-              setBoardOrientation("white");
             }}
           >
             Reset

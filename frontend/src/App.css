@@ -238,24 +238,25 @@ body {
   outline-offset: 2px;
 }
 
-/* Przyciski pod planszą: strzałka + obrót 180° */
-.board-toolbar {
+/* Kontener przycisków pod szachownicą */
+.board-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 0.65rem;
-  justify-content: center;
+  gap: 0.5rem;
   width: 100%;
+  justify-content: center;
 }
 
-.board-orient-toggle {
+/* Przycisk obracania szachownicy */
+.flip-board-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.55rem 1.1rem;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
   font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-dim);
   background: var(--surface-muted);
@@ -265,22 +266,22 @@ body {
   transition:
     color 0.15s,
     background 0.15s,
-    border-color 0.15s;
+    border-color 0.15s,
+    transform 0.12s;
 }
 
-.board-orient-toggle:hover {
+.flip-board-btn:hover {
   color: var(--text);
   border-color: var(--border-strong);
   background: var(--surface-elevated);
+  transform: scale(1.02);
 }
 
-.board-orient-toggle--active {
-  color: var(--accent-hover);
-  border-color: rgba(79, 168, 120, 0.45);
-  background: var(--accent-soft);
+.flip-board-btn:active {
+  transform: scale(0.98);
 }
 
-.board-orient-toggle:focus-visible {
+.flip-board-btn:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }

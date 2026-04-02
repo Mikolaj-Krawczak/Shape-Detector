@@ -8,7 +8,6 @@ interface BoardPanelProps {
   bestMove: string | null;
   showBestMove: boolean;
   boardWidth: number;
-  /** Widok z perspektywy białych (rank 1 na dole) lub czarnych (180°). */
   boardOrientation: "white" | "black";
 }
 
@@ -22,6 +21,7 @@ export default function BoardPanel({
   bestMove,
   showBestMove,
   boardWidth,
+  boardOrientation,
 }: BoardPanelProps) {
   const isValidFen = useMemo(() => {
     try {
