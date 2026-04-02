@@ -474,7 +474,7 @@ export default function App() {
             onClick={() => void evaluate()}
             disabled={loading || !fen.trim()}
           >
-            {loading ? "Analizuję…" : "Analizuj ↵"}
+            {loading ? "Analizuję…" : "Analizuj"}
           </button>
           <button
             type="button"
