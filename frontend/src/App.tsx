@@ -1,6 +1,7 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
 import "./App.css";
+import BoardPanel from "./BoardPanel";
 
 const API = "http://localhost:8000";
 
@@ -23,6 +24,8 @@ export interface EvalResponse {
   score_type: "cp" | "mate";
   mate_in: number | null;
   best_move: string | null;
+  pv: string[];
+  depth: number;
   turn: "white" | "black";
   is_valid: boolean;
 }
@@ -190,6 +193,9 @@ export default function App() {
   const [result, setResult] = useState<EvalResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showBestMove, setShowBestMove] = useState(true);
+  const [boardWidth, setBoardWidth] = useState(400);
+  const boardColRef = useRef<HTMLDivElement>(null);
   const [depth, setDepth] = useState(DEFAULT_DEPTH);
   const [strengthMode, setStrengthMode] = useState<StrengthMode>("full");
   const [eloLimit, setEloLimit] = useState(DEFAULT_ELO);
@@ -228,6 +234,17 @@ export default function App() {
     if (e.key === "Enter" && !loading) void evaluate();
   };
 
+  useEffect(() => {
+    const el = boardColRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width;
+      if (w && w > 0) setBoardWidth(Math.floor(w));
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <main className="app">
       <header className="header">
@@ -239,6 +256,23 @@ export default function App() {
           Analiza pozycji · <strong>Stockfish 18</strong> · silnik UCI · MVP v0.1
         </p>
       </header>
+
+      <div className="board-col" ref={boardColRef}>
+        <BoardPanel
+          fen={fen}
+          bestMove={result?.best_move ?? null}
+          showBestMove={showBestMove}
+          boardWidth={boardWidth}
+        />
+        <button
+          type="button"
+          className={`arrow-toggle${showBestMove ? " arrow-toggle--active" : ""}`}
+          onClick={() => setShowBestMove((v) => !v)}
+          aria-pressed={showBestMove}
+        >
+          {showBestMove ? "⟵ Ukryj strzałkę" : "⟶ Pokaż najlepszy ruch"}
+        </button>
+      </div>
 
       <div className="input-panel">
         <label className="input-label" htmlFor="fen-input">

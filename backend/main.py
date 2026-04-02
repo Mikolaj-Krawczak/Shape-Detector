@@ -74,23 +74,18 @@ class EvalResponse(BaseModel):
     score_type: str       # "cp" (centypiony) lub "mate"
     mate_in: int | None   # liczba ruchów do mata, None jeśli nie ma
     best_move: str | None # np. "e2e4"
+    pv: list[str]         # principal variation — pełna linia ruchów UCI
+    depth: int            # faktyczna głębokość analizy zwrócona przez silnik
     turn: str             # "white" lub "black"
     is_valid: bool
 
 
-def _best_move_uci(info: chess.engine.InfoDict) -> str | None:
-    """
-    Pierwszy ruch z linii PV.
-    Uwaga: info.get('pv', [None])[0] jest błędne — jeśli klucz 'pv' istnieje, ale ma wartość None,
-    .get zwraca None (nie domyślną listę), co daje TypeError przy [0].
-    """
+def _extract_pv(info: chess.engine.InfoDict) -> list[str]:
+    """Wyciąga linię PV z InfoDict jako listę stringów UCI."""
     raw = info.get("pv")
     if not raw:
-        return None
-    first = raw[0]
-    if isinstance(first, chess.Move):
-        return first.uci()
-    return str(first)
+        return []
+    return [m.uci() if isinstance(m, chess.Move) else str(m) for m in raw]
 
 
 @app.get("/health")
@@ -138,17 +133,20 @@ def evaluate(req: FENRequest):
         )
 
     score_obj = pov.white()
-    best_move = _best_move_uci(info)
+    pv_line = _extract_pv(info)
+    best_move = pv_line[0] if pv_line else None
+    actual_depth = info.get("depth", req.depth)
 
     if score_obj.is_mate():
         mate_val = score_obj.mate()
-        # +M3 = białe dają mata w 3, -M3 = czarne dają mata w 3
-        score_cp = 100.0 if mate_val > 0 else -100.0  # cap dla termometru
+        score_cp = 100.0 if mate_val > 0 else -100.0
         return EvalResponse(
             score=score_cp,
             score_type="mate",
             mate_in=mate_val,
             best_move=best_move,
+            pv=pv_line,
+            depth=actual_depth,
             turn="white" if board.turn == chess.WHITE else "black",
             is_valid=True,
         )
@@ -156,7 +154,6 @@ def evaluate(req: FENRequest):
     cp = score_obj.score()
     if cp is None:
         cp = score_obj.score(mate_score=32000) or 0
-    # Normalizuj do przedziału [-10, +10] pionków dla czytelności
     score_pawns = round(cp / 100, 2)
 
     return EvalResponse(
@@ -164,6 +161,8 @@ def evaluate(req: FENRequest):
         score_type="cp",
         mate_in=None,
         best_move=best_move,
+        pv=pv_line,
+        depth=actual_depth,
         turn="white" if board.turn == chess.WHITE else "black",
         is_valid=True,
     )
