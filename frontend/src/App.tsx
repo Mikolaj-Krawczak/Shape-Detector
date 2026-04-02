@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent } from "react";
+import type { CSSProperties, KeyboardEvent, ChangeEvent } from "react";
 import "./App.css";
 import BoardPanel from "./BoardPanel";
 
@@ -202,21 +202,26 @@ export default function App() {
   const [eloLimit, setEloLimit] = useState(DEFAULT_ELO);
   const [skillLevel, setSkillLevel] = useState(DEFAULT_SKILL);
 
-  const evaluate = useCallback(async () => {
+  // Ref do bieżących ustawień silnika — pozwala wywołać analizę ze świeżymi
+  // wartościami bez dodawania ich do deps useEffect nasłuchującego na FEN
+  const engineSettingsRef = useRef({ depth, strengthMode, eloLimit, skillLevel });
+  useEffect(() => {
+    engineSettingsRef.current = { depth, strengthMode, eloLimit, skillLevel };
+  }, [depth, strengthMode, eloLimit, skillLevel]);
+
+  const evaluate = useCallback(async (fenOverride?: string) => {
+    const fenToUse = fenOverride ?? fen;
+    if (!fenToUse.trim()) return;
     setLoading(true);
     setError(null);
     try {
+      const { depth: d, strengthMode: sm, eloLimit: el, skillLevel: sl } =
+        engineSettingsRef.current;
       const res = await fetch(`${API}/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
-          buildEvaluatePayload(
-            fen,
-            depth,
-            strengthMode,
-            eloLimit,
-            skillLevel
-          )
+          buildEvaluatePayload(fenToUse, d, sm, el, sl)
         ),
       });
       const data: unknown = await res.json();
@@ -229,10 +234,22 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [depth, eloLimit, fen, skillLevel, strengthMode]);
+  }, [fen]);
 
   const handleKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !loading) void evaluate();
+  };
+
+  // Auto-analiza po wklejeniu FEN — debounce 600 ms, żeby nie strzelać
+  // zapytania przy każdym znaku wpisywanym ręcznie
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleFenChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+    const val = e.target.value;
+    setFen(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      void evaluate(val);
+    }, 600);
   };
 
   useEffect(() => {
@@ -338,7 +355,7 @@ export default function App() {
         <textarea
           id="fen-input"
           value={fen}
-          onChange={(e) => setFen(e.target.value)}
+          onChange={handleFenChange}
           onKeyDown={handleKey}
           placeholder="Wklej notację FEN…"
           spellCheck={false}
